@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:  # allows you to run it manually
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,10 +14,7 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Setup PowerShell
-      uses: PowerShell/PowerShell@v1.2.0
-
     - name: Run PowerShell script
       shell: pwsh
       run: |
-        pwsh ./CreateVM.ps1
+        ./CreateVM.ps1
