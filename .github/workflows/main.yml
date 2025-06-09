@@ -14,6 +14,12 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
+    - name: Install Az Module
+      shell: pwsh
+      run: |
+        Install-Module -Name Az -Force -AllowClobber -Scope CurrentUser
+        Import-Module Az
+
     - name: Run PowerShell script
       shell: pwsh
       run: |
