@@ -2,8 +2,7 @@ name: Azure PowerShell CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -12,12 +11,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install PowerShell
         uses: PowerShell/PowerShell@v1.0.0
 
+      - name: Debug Files
+        run: ls -la
+
       - name: Run PowerShell script
         shell: pwsh
         run: |
-          pwsh -File ./CreateVM.ps1
+          Write-Host "Starting PowerShell Script"
+          if (Test-Path ./CreateVM.ps1) {
+            pwsh ./CreateVM.ps1
+          } else {
+            Write-Host "CreateVM.ps1 not found!"
+            exit 1
+          }
+
