@@ -1,0 +1,23 @@
+name: Azure PowerShell CI
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install PowerShell
+        uses: PowerShell/PowerShell@v1.0.0
+
+      - name: Run PowerShell script
+        shell: pwsh
+        run: |
+          pwsh -File ./CreateVM.ps1
