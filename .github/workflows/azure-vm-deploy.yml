@@ -1,0 +1,32 @@
+name: Azure VM Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-vm:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Setup PowerShell
+      uses: actions/setup-powershell@v2
+
+    - name: Install Az Module
+      shell: pwsh
+      run: |
+        Install-Module -Name Az -Force -Scope CurrentUser
+
+    - name: Run create-vm.ps1 script
+      shell: pwsh
+      run: |
+        ./create-vm.ps1
