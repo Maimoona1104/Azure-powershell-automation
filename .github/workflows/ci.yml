@@ -1,0 +1,76 @@
+name: Azure VM Deployment CI
+
+on: 
+  push:
+    branches: [ main ]
+
+jobs:
+  validate-and-deploy:
+    runs-on: ubuntu-latest
+    name: Validate PowerShell script and deploy VM
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Debug - List files
+      - name: List files (debug)
+        run: ls -la
+        
+      # Step 3: Install PowerShell Core
+      - name: Install PowerShell
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget apt-transport-https software-properties-common
+          wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo apt-get install -y powershell
+        shell: bash
+
+      # Step 4: Set up Azure credentials
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Step 5: Install Az module
+      - name: Install Az Module
+        shell: pwsh
+        run: |
+          Install-Module -Name Az -Repository PSGallery -Force -AllowClobber
+          Import-Module Az -Force
+          
+      # Step 6: Validate script syntax
+      - name: Validate Script Syntax
+        shell: pwsh
+        run: |
+          $script = Get-Content -Path ./Create-VM.ps1 -Raw
+          $errors = $null
+          $null = [System.Management.Automation.PSParser]::Tokenize($script, [ref]$errors)
+          if ($errors.Count -gt 0) {
+              Write-Error "Script validation failed with $($errors.Count) errors:"
+              $errors | Format-List
+              exit 1
+          }
+          Write-Output "Script syntax validation passed"
+
+      # Step 7: Execute VM creation
+      - name: Create Azure VM
+        shell: pwsh
+        run: |
+          ./Create-VM.ps1
+          Write-Output "VM creation completed successfully"
+        env:
+          AZURE_RESOURCE_GROUP: "Project7-RG"
+          
+      # Step 8: Verify deployment
+      - name: Verify VM Deployment
+        shell: pwsh
+        run: |
+          $vm = Get-AzVM -ResourceGroupName $env:AZURE_RESOURCE_GROUP -ErrorAction SilentlyContinue
+          if (-not $vm) {
+              Write-Error "VM creation verification failed - no VM found"
+              exit 1
+          }
+          Write-Output "Successfully verified VM: $($vm.Name)"
